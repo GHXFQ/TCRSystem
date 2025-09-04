@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tcr.system.mapper.MaterialReviewMapper">
+
+    <!-- 分页查询教师提交的材料审核列表 -->
+    <select id="getTeacherSubmitReviews" resultType="java.util.Map">
+        SELECT 
+            mr.id, mr.material_id, mr.academic_year, mr.semester, mr.status, mr.create_time,
+            tm.name as material_name, tm.description as material_description,
+            c.name as course_name,
+            mt.name as material_type_name,
+            maj.name as major_name,
+            col.name as college_name
+        FROM 
+            material_review mr
+            LEFT JOIN temp_material tm ON mr.material_id = tm.id
+            LEFT JOIN course c ON mr.course_id = c.id
+            LEFT JOIN material_type mt ON mr.material_type_id = mt.id
+            LEFT JOIN major maj ON mr.major_id = maj.id
+            LEFT JOIN college col ON mr.college_id = col.id
+        WHERE 
+            mr.submit_user_id = #{teacherId}
+            AND mr.deleted = 0
+            <if test="academicYear != null and academicYear != ''">
+                AND mr.academic_year = #{academicYear}
+            </if>
+            <if test="semester != null">
+                AND mr.semester = #{semester}
+            </if>
+            <if test="status != null">
+                AND mr.status = #{status}
+            </if>
+        ORDER BY 
+            mr.create_time DESC
+    </select>
+    
+    <!-- 分页查询教师待审核的材料列表 -->
+    <select id="getTeacherPendingReviews" resultType="java.util.Map">
+        SELECT 
+            mr.id, mr.material_id, mr.academic_year, mr.semester, mr.status, mr.create_time,
+            tm.name as material_name, tm.description as material_description,
+            c.name as course_name,
+            mt.name as material_type_name,
+            maj.name as major_name,
+            col.name as college_name,
+            u.real_name as submit_user_name
+        FROM 
+            material_review mr
+            LEFT JOIN temp_material tm ON mr.material_id = tm.id
+            LEFT JOIN course c ON mr.course_id = c.id
+            LEFT JOIN material_type mt ON mr.material_type_id = mt.id
+            LEFT JOIN major maj ON mr.major_id = maj.id
+            LEFT JOIN college col ON mr.college_id = col.id
+            LEFT JOIN user u ON mr.submit_user_id = u.id
+            LEFT JOIN teacher_title tt ON tt.teacher_id = #{reviewerId}
+        WHERE 
+            mr.deleted = 0
+            AND mr.status IN (1, 2, 3, 4)
+            AND (
+                (tt.title_type = 1 AND mr.status = 1 AND mr.course_id = tt.course_id)  -- 课程负责人
+                OR (tt.title_type = 2 AND mr.status = 2 AND mr.major_id = tt.major_id)  -- 专业负责人
+                OR (tt.title_type = 3 AND mr.status = 3)  -- 教学副院长
+                OR (tt.title_type = 4 AND mr.status = 4)  -- 教务人员
+            )
+            <if test="academicYear != null and academicYear != ''">
+                AND mr.academic_year = #{academicYear}
+            </if>
+            <if test="semester != null">
+                AND mr.semester = #{semester}
+            </if>
+        ORDER BY 
+            mr.create_time DESC
+    </select>
+    
+    <!-- 获取材料审核详情 -->
+    <select id="getReviewDetail" resultType="java.util.Map">
+        SELECT 
+            mr.id, mr.material_id, mr.academic_year, mr.semester, mr.status, mr.create_time,
+            tm.name as material_name, tm.description as material_description, tm.file_path, tm.file_size, tm.file_type,
+            c.name as course_name,
+            mt.name as material_type_name,
+            maj.name as major_name,
+            col.name as college_name,
+            u.real_name as submit_user_name,
+            u2.real_name as current_reviewer_name
+        FROM 
+            material_review mr
+            LEFT JOIN temp_material tm ON mr.material_id = tm.id
+            LEFT JOIN course c ON mr.course_id = c.id
+            LEFT JOIN material_type mt ON mr.material_type_id = mt.id
+            LEFT JOIN major maj ON mr.major_id = maj.id
+            LEFT JOIN college col ON mr.college_id = col.id
+            LEFT JOIN user u ON mr.submit_user_id = u.id
+            LEFT JOIN user u2 ON mr.current_reviewer_id = u2.id
+        WHERE 
+            mr.id = #{reviewId}
+            AND mr.deleted = 0
+    </select>
+    
+    <select id="getAdminReviewList" resultType="java.util.Map">
+        SELECT 
+            mr.id,
+            mr.material_id,
+            tm.name as material_name,
+            c.name as course_name,
+            mt.name as material_type_name,
+            mr.academic_year,
+            mr.semester,
+            u.username as submit_user_name,
+            mr.status,
+            mr.create_time
+        FROM material_review mr
+        LEFT JOIN temp_material tm ON mr.material_id = tm.id
+        LEFT JOIN course c ON mr.course_id = c.id
+        LEFT JOIN material_type mt ON mr.material_type_id = mt.id
+        LEFT JOIN user u ON mr.submit_user_id = u.id
+        WHERE mr.deleted = 0
+        <if test="academicYear != null and academicYear != ''">
+            AND mr.academic_year = #{academicYear}
+        </if>
+        <if test="semester != null">
+            AND mr.semester = #{semester}
+        </if>
+        <if test="status != null">
+            AND mr.status = #{status}
+        </if>
+        ORDER BY mr.create_time DESC
+    </select>
+    
+    <select id="getReviewRecords" resultType="java.util.Map">
+        SELECT 
+            rr.*,
+            u.username as reviewer_name,
+            u.title as reviewer_title
+        FROM review_record rr
+        LEFT JOIN user u ON rr.reviewer_id = u.id
+        WHERE rr.review_id = #{reviewId}
+        ORDER BY rr.create_time ASC
+    </select>
+    
+</mapper> 

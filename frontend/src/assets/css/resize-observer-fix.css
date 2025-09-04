@@ -1,0 +1,73 @@
+/**
+ * 解决ResizeObserver循环通知错误的CSS修复
+ */
+
+/* 防止标签页内容区域触发不必要的调整大小事件 */
+.el-tabs__content {
+  overflow: hidden !important;
+  /* 设置固定高度或最小高度可以减少重新计算布局 */
+  min-height: 200px;
+  /* 使用硬件加速减少重排和重绘 */
+  transform: translateZ(0);
+  will-change: transform;
+  /* 确保内容可见但不触发不必要的布局计算 */
+  contain: layout style;
+}
+
+/* 为表格设置溢出处理，防止尺寸计算问题 */
+.el-table {
+  overflow: hidden !important;
+  /* 使用硬件加速 */
+  transform: translateZ(0);
+  will-change: transform;
+  /* 不让内部元素的大小变化影响到外部 */
+  contain: layout style;
+}
+
+/* 修复弹窗中的ResizeObserver问题 */
+.el-dialog__body {
+  /* 确保弹窗内容有稳定高度 */
+  min-height: 50px;
+  overflow: auto !important;
+  /* 减少布局计算 */
+  contain: layout style;
+}
+
+/* 修复标签页切换时的闪烁问题 */
+.el-tab-pane {
+  /* 避免不必要的重绘 */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  /* 确保平滑切换 */
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* 针对学生管理页的课程选择对话框的特殊修复 */
+.course-management .el-tabs__content {
+  min-height: 300px;
+  /* 使表格内容在固定高度下可滚动 */
+  max-height: 450px;
+  overflow: auto !important;
+}
+
+/* 确保表格滚动时不会触发额外的观察者事件 */
+.course-management .el-table {
+  /* 防止表格被挤压变形 */
+  height: auto !important;
+  min-height: 250px;
+  max-height: 400px;
+}
+
+/* 当表格数据较少时，保持最小高度避免重排 */
+.el-table__body-wrapper {
+  min-height: 100px;
+}
+
+/* 修复下拉选择器的ResizeObserver问题 */
+.el-select-dropdown {
+  /* 使用硬件加速 */
+  transform: translateZ(0);
+  will-change: transform;
+  contain: layout style;
+} 

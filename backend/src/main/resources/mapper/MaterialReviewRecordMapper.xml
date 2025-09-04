@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tcr.system.mapper.MaterialReviewRecordMapper">
+
+    <!-- 获取审核记录列表 -->
+    <select id="getReviewRecords" resultType="java.util.Map">
+        SELECT 
+            mrr.id, mrr.review_id, mrr.reviewer_id, mrr.reviewer_title, mrr.result, mrr.comment, mrr.create_time,
+            u.real_name as reviewer_name
+        FROM 
+            material_review_record mrr
+            LEFT JOIN user u ON mrr.reviewer_id = u.id
+        WHERE 
+            mrr.review_id = #{reviewId}
+            AND mrr.deleted = 0
+        ORDER BY 
+            mrr.create_time DESC
+    </select>
+    
+</mapper> 

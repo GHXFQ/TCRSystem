@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tcr.system.mapper.TeacherTitleMapper">
+
+    <!-- 根据教师ID获取职称列表 -->
+    <select id="getTeacherTitlesByTeacherId" resultType="com.tcr.system.entity.TeacherTitle">
+        SELECT * FROM teacher_title WHERE teacher_id = #{teacherId} AND deleted = 0
+    </select>
+    
+    <!-- 根据课程ID获取课程负责人ID -->
+    <select id="getCourseLeaderIdByCourseId" resultType="java.lang.Long">
+        SELECT teacher_id FROM teacher_title 
+        WHERE title_type = 1 AND course_id = #{courseId} AND deleted = 0
+        LIMIT 1
+    </select>
+    
+    <!-- 根据专业ID获取专业负责人ID -->
+    <select id="getMajorLeaderIdByMajorId" resultType="java.lang.Long">
+        SELECT teacher_id FROM teacher_title 
+        WHERE title_type = 2 AND major_id = #{majorId} AND deleted = 0
+        LIMIT 1
+    </select>
+    
+    <!-- 根据学院ID获取副院长ID -->
+    <select id="getViceDeanIdByCollegeId" resultType="java.lang.Long">
+        SELECT teacher_id
+        FROM teacher_title
+        WHERE college_id = #{collegeId}
+        AND title_type = 3
+        AND deleted = 0
+        LIMIT 1
+    </select>
+    
+    <!-- 获取学院所有副院长ID列表 -->
+    <select id="getViceDeanIdsByCollegeId" resultType="java.lang.Long">
+        SELECT teacher_id
+        FROM teacher_title
+        WHERE college_id = #{collegeId}
+        AND title_type = 3
+        AND deleted = 0
+    </select>
+    
+</mapper> 

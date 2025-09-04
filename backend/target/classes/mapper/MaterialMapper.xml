@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tcr.system.mapper.MaterialMapper">
+
+    <!-- 查询教师上传的材料列表 -->
+    <select id="getTeacherMaterials" resultType="java.util.Map">
+        SELECT
+            m.id,
+            m.name,
+            m.description,
+            m.course_id,
+            m.file_path,
+            m.file_size,
+            m.file_type,
+            m.upload_user_id,
+            m.download_count,
+            m.type,
+            m.academic_year,
+            m.semester,
+            m.material_type_id,
+            m.create_time,
+            m.update_time,
+            m.deleted,
+            c.name as course_name,
+            mt.name as material_type_name,
+            mr.id as review_id,
+            mr.status as review_status
+        FROM 
+            material m
+        LEFT JOIN 
+            course c ON m.course_id = c.id
+        LEFT JOIN 
+            material_type mt ON m.material_type_id = mt.id
+        LEFT JOIN 
+            material_review mr ON m.id = mr.material_id
+        WHERE 
+            m.upload_user_id = #{teacherId}
+            <if test="courseId != null">
+                AND m.course_id = #{courseId}
+            </if>
+            <if test="materialTypeId != null">
+                AND m.material_type_id = #{materialTypeId}
+            </if>
+            <if test="academicYear != null and academicYear != ''">
+                AND m.academic_year = #{academicYear}
+            </if>
+            <if test="semester != null">
+                AND m.semester = #{semester}
+            </if>
+            <if test="type != null">
+                AND m.type = #{type}
+            </if>
+            AND (m.deleted IS NULL OR m.deleted = 0)
+        ORDER BY 
+            m.create_time DESC
+    </select>
+
+    <!-- 查询课程资源协同列表 -->
+    <select id="getSharedMaterials" resultType="java.util.Map">
+        SELECT
+            m.id,
+            m.name,
+            m.description,
+            m.course_id,
+            m.file_path,
+            m.file_size,
+            m.file_type,
+            m.upload_user_id,
+            m.download_count,
+            m.type,
+            m.academic_year,
+            m.semester,
+            m.material_type_id,
+            m.create_time,
+            m.update_time,
+            c.name as course_name,
+            mt.name as material_type_name,
+            u.real_name as upload_user_name,
+            mr.id as review_id,
+            mr.status as review_status
+        FROM
+            material m
+        LEFT JOIN
+            course c ON m.course_id = c.id
+        LEFT JOIN
+            material_type mt ON m.material_type_id = mt.id
+        LEFT JOIN
+            user u ON m.upload_user_id = u.id
+        LEFT JOIN (
+            SELECT id, material_id, status FROM material_review WHERE deleted = 0 ORDER BY create_time DESC LIMIT 1
+        ) mr ON m.id = mr.material_id
+        WHERE
+            m.deleted = 0
+            <if test="courseId != null">
+                AND m.course_id = #{courseId}
+            </if>
+            <if test="courseIds != null and courseIds.length > 0">
+                AND m.course_id IN
+                <foreach item="item" collection="courseIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="materialTypeId != null">
+                AND m.material_type_id = #{materialTypeId}
+            </if>
+            <if test="academicYear != null and academicYear != ''">
+                AND m.academic_year = #{academicYear}
+            </if>
+            <if test="semester != null">
+                AND m.semester = #{semester}
+            </if>
+            <if test="type != null">
+                AND m.type = #{type}
+            </if>
+        ORDER BY
+            m.create_time DESC
+    </select>
+
+    <!-- 获取同一课程其他教师的教学大纲和授课计划 -->
+    <select id="getCourseSharedMaterials" resultType="java.util.Map">
+        SELECT
+            m.id,
+            m.name,
+            m.description,
+            m.course_id,
+            m.file_path,
+            m.file_size,
+            m.file_type,
+            m.upload_user_id,
+            m.download_count,
+            m.type,
+            m.academic_year,
+            m.semester,
+            m.material_type_id,
+            m.create_time,
+            m.update_time,
+            c.name as course_name,
+            mt.name as material_type_name,
+            u.real_name as upload_user_name
+        FROM
+            material m
+        LEFT JOIN
+            course c ON m.course_id = c.id
+        LEFT JOIN
+            material_type mt ON m.material_type_id = mt.id
+        LEFT JOIN
+            user u ON m.upload_user_id = u.id
+        WHERE
+            m.deleted = 0
+            AND m.course_id = #{courseId}
+            AND m.material_type_id = #{materialTypeId}
+            <if test="excludeUserId != null">
+                AND m.upload_user_id != #{excludeUserId}
+            </if>
+        ORDER BY
+            m.create_time DESC
+    </select>
+
+</mapper> 
